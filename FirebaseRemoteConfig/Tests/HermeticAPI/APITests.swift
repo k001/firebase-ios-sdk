@@ -133,7 +133,7 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { (changed, error) in
+      self.config.activate { changed, error in
         XCTAssertFalse(changed)
         if let error = error {
           print("Activate Error \(error)")
@@ -149,7 +149,7 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { (changed, error) in
+      self.config.activate { changed, error in
         XCTAssertFalse(changed)
         XCTAssertNil(error)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
@@ -203,7 +203,7 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { (changed, error) in
+      self.config.activate { changed, error in
         XCTAssertNil(error)
         XCTAssert(changed)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
@@ -221,7 +221,7 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { (changed, error) in
+      self.config.activate { changed, error in
         XCTAssertNil(error)
         XCTAssert(changed)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value2")
@@ -230,7 +230,6 @@ class APITests: XCTestCase {
     }
     waitForExpectations()
   }
-
 
   private func waitForExpectations() {
     let kFIRStorageIntegrationTestTimeout = 100.0
