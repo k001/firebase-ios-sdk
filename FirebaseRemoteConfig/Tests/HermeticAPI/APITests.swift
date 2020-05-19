@@ -53,11 +53,8 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { error in
-        if let error = error {
-          // This API returns an error if the config was unchanged.
-          print("Activate Error \(error)")
-        }
+      XCTAssertEqual(status, RemoteConfigFetchStatus.success)
+      self.config.activate { _, error in
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
         expectation.fulfill()
       }
@@ -72,11 +69,8 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { error in
-        if let error = error {
-          // This API returns an error if the config was unchanged.
-          print("Activate Error \(error)")
-        }
+      self.config.activate { _, error in
+        XCTAssertNil(error)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
         expectation.fulfill()
       }
@@ -96,6 +90,7 @@ class APITests: XCTestCase {
     waitForExpectations()
   }
 
+  // Test Deprecated API.
   func testUnchangedActivateWillError() {
     let expectation = self.expectation(description: #function)
     config.fetch { status, error in
@@ -130,6 +125,41 @@ class APITests: XCTestCase {
     waitForExpectations()
   }
 
+  // Test New API.
+  func testUnchangedActivateWillFlag() {
+    let expectation = self.expectation(description: #function)
+    config.fetch { status, error in
+      if let error = error {
+        XCTFail("Fetch Error \(error)")
+      }
+      XCTAssertEqual(status, RemoteConfigFetchStatus.success)
+      self.config.activate { (changed, error) in
+        XCTAssertFalse(changed)
+        if let error = error {
+          print("Activate Error \(error)")
+        }
+        XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
+        expectation.fulfill()
+      }
+    }
+    waitForExpectations()
+    let expectation2 = self.expectation(description: #function + "2")
+    config.fetch { status, error in
+      if let error = error {
+        XCTFail("Fetch Error \(error)")
+      }
+      XCTAssertEqual(status, RemoteConfigFetchStatus.success)
+      self.config.activate { (changed, error) in
+        XCTAssertFalse(changed)
+        XCTAssertNil(error)
+        XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
+        expectation2.fulfill()
+      }
+    }
+    waitForExpectations()
+  }
+
+  // Test Deprecated API.
   func testChangedActivateWillNotError() {
     let expectation = self.expectation(description: #function)
     config.fetch { status, error in
@@ -164,6 +194,43 @@ class APITests: XCTestCase {
     }
     waitForExpectations()
   }
+
+  // Test New API.
+  func testChangedActivateWillNotFlag() {
+    let expectation = self.expectation(description: #function)
+    config.fetch { status, error in
+      if let error = error {
+        XCTFail("Fetch Error \(error)")
+      }
+      XCTAssertEqual(status, RemoteConfigFetchStatus.success)
+      self.config.activate { (changed, error) in
+        XCTAssertNil(error)
+        XCTAssert(changed)
+        XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
+        expectation.fulfill()
+      }
+    }
+    waitForExpectations()
+
+    // Simulate updating console.
+    FakeFetch.config = ["Key1": "Value2"]
+
+    let expectation2 = self.expectation(description: #function + "2")
+    config.fetch { status, error in
+      if let error = error {
+        XCTFail("Fetch Error \(error)")
+      }
+      XCTAssertEqual(status, RemoteConfigFetchStatus.success)
+      self.config.activate { (changed, error) in
+        XCTAssertNil(error)
+        XCTAssert(changed)
+        XCTAssertEqual(self.config["Key1"].stringValue, "Value2")
+        expectation2.fulfill()
+      }
+    }
+    waitForExpectations()
+  }
+
 
   private func waitForExpectations() {
     let kFIRStorageIntegrationTestTimeout = 100.0

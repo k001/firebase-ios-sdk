@@ -48,11 +48,8 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { error in
-        if let error = error {
-          // This API returns an error if the config was unchanged.
-          print("Activate Error \(error)")
-        }
+      self.config.activate { _, error in
+        XCTAssertNil(error)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
         expectation.fulfill()
       }
@@ -67,11 +64,8 @@ class APITests: XCTestCase {
         XCTFail("Fetch Error \(error)")
       }
       XCTAssertEqual(status, RemoteConfigFetchStatus.success)
-      self.config.activate { error in
-        if let error = error {
-          // This API returns an error if the config was unchanged.
-          print("Activate Error \(error)")
-        }
+      self.config.activate { _, error in
+        XCTAssertNil(error)
         XCTAssertEqual(self.config["Key1"].stringValue, "Value1")
         expectation.fulfill()
       }
